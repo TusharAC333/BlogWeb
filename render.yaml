@@ -1,5 +1,5 @@
 services:
-  - name: your-app-name
+  - name: Blog-web
     type: web
     buildCommand: cd client && npm install && npm run build
     startCommand: cd server && npm start
