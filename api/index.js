@@ -19,7 +19,13 @@ app.use(express.json());
 app.use(cookieParser());
 app.use('/uploads',express.static(__dirname+'/uploads'))
 
-mongoose.connect('mongodb+srv://tusharac333:tushar@tusharcluster.pox2zic.mongodb.net/?retryWrites=true&w=majority')
+mongoose.connect('mongodb+srv://tusharac333:tushar@tusharcluster.pox2zic.mongodb.net/test?retryWrites=true&w=majority')
+    .then(() => {
+        console.log('Connected to MongoDB');
+    })
+    .catch((err) => {
+        console.error('Error connecting to MongoDB:', err);
+    });
 
 app.post('/register', async(req,res)=>{
     const {username,password}=req.body;
@@ -32,23 +38,39 @@ app.post('/register', async(req,res)=>{
     }    
 })
 
-app.post('/login',async(req,res)=>{
-    const{username,password}=req.body;
-    const userDoc=await User.findOne({username});
-    const passOk=bcrypt.compareSync(password, userDoc.password); 
-    if(passOk){
-        jwt.sign({username,id:userDoc._id},secret,{},(err,token)=>{
-            if(err) throw err;
-            res.cookie("token",token).json({
-                id:userDoc._id,
-                username,
-            });
-        })
-    }
-    else{
-        res.status(400).json('wrong credentials');
-    }
-})
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+      const userDoc = await User.findOne({ username });
+
+      if (!userDoc) {
+          return res.status(400).json('User not found');
+      }
+
+      const passOk = bcrypt.compareSync(password, userDoc.password);
+
+      if (passOk) {
+          jwt.sign({ username, id: userDoc._id }, secret, {}, (err, token) => {
+              if (err) {
+                  console.error('Error signing JWT:', err);
+                  res.status(500).json({ error: 'Internal Server Error' });
+              } else {
+                  res.cookie("token", token).json({
+                      id: userDoc._id,
+                      username,
+                  });
+              }
+          });
+      } else {
+          res.status(400).json('Wrong credentials');
+      }
+  } catch (error) {
+      console.error('Error in login:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 app.get('/profile', (req,res)=>{
     const {token}=req.cookies;
