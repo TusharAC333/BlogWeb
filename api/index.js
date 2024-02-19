@@ -19,7 +19,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use('/uploads',express.static(__dirname+'/uploads'))
 
-mongoose.connect('mongodb+srv://tusharac333:tushar@tusharcluster.pox2zic.mongodb.net/test?retryWrites=true&w=majority')
+mongoose.connect(uri)
     .then(() => {
         console.log('Connected to MongoDB');
     })
